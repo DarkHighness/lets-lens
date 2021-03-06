@@ -1,50 +1,51 @@
-module Lets.GetSetLens (
-  Lens(..)
-, getsetLaw
-, setgetLaw
-, setsetLaw
-, get
-, set
-, modify
-, (%~)
-, (.~)
-, fmodify
-, (|=)
-, fstL
-, sndL
-, mapL
-, setL
-, compose
-, (|.)
-, identity
-, product
-, (***)
-, choice
-, (|||)
-, cityL
-, countryL
-, streetL
-, suburbL
-, localityL
-, ageL
-, nameL
-, addressL
-, getSuburb
-, setStreet
-, getAgeAndCountry
-, setCityAndLocality
-, getSuburbOrCity
-, setStreetOrState
-, modifyCityUppercase
-) where
+module Lets.GetSetLens
+  ( Lens (..),
+    getsetLaw,
+    setgetLaw,
+    setsetLaw,
+    get,
+    set,
+    modify,
+    (%~),
+    (.~),
+    fmodify,
+    (|=),
+    fstL,
+    sndL,
+    mapL,
+    setL,
+    compose,
+    (|.),
+    identity,
+    product,
+    (***),
+    choice,
+    (|||),
+    cityL,
+    countryL,
+    streetL,
+    suburbL,
+    localityL,
+    ageL,
+    nameL,
+    addressL,
+    getSuburb,
+    setStreet,
+    getAgeAndCountry,
+    setCityAndLocality,
+    getSuburbOrCity,
+    setStreetOrState,
+    modifyCityUppercase,
+  )
+where
 
-import Control.Applicative(Applicative((<*>)))
-import Data.Char(toUpper)
-import Data.Map(Map)
-import qualified Data.Map as Map(insert, delete, lookup)
-import Data.Set(Set)
-import qualified Data.Set as Set(insert, delete, member)
-import Lets.Data(Person(Person), Locality(Locality), Address(Address))
+import Control.Applicative (Applicative ((<*>)))
+import Data.Char (toUpper)
+import Data.Map (Map)
+import qualified Data.Map as Map (delete, insert, lookup)
+import Data.Set (Set)
+import qualified Data.Set as Set (delete, insert, member)
+import Lets.Data (Address (Address), Locality (Locality), Person (Person))
 import Prelude hiding (product)
 
 -- $setup
@@ -54,10 +55,10 @@ import Prelude hiding (product)
 -- >>> import Data.Char(ord)
 -- >>> import Lets.Data
 
-data Lens a b =
-  Lens
-    (a -> b -> a)
-    (a -> b)
+data Lens a b
+  = Lens
+      (a -> b -> a)
+      (a -> b)
 
 -- |
 --
@@ -71,9 +72,9 @@ data Lens a b =
 --
 -- prop> let types = (x :: Int, y :: String) in get sndL (x, y) == y
 get ::
-  Lens a b
-  -> a
-  -> b
+  Lens a b ->
+  a ->
+  b
 get (Lens _ g) =
   g
 
@@ -89,40 +90,40 @@ get (Lens _ g) =
 --
 -- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (x, z)
 set ::
-  Lens a b
-  -> a 
-  -> b
-  -> a
+  Lens a b ->
+  a ->
+  b ->
+  a
 set (Lens s _) a =
   s a
 
 -- | The get/set law of lenses. This function should always return @True@.
 getsetLaw ::
   Eq a =>
-  Lens a b
-  -> a
-  -> Bool
+  Lens a b ->
+  a ->
+  Bool
 getsetLaw l =
   \a -> set l a (get l a) == a
-  
+
 -- | The set/get law of lenses. This function should always return @True@.
 setgetLaw ::
   Eq b =>
-  Lens a b
-  -> a
-  -> b
-  -> Bool
+  Lens a b ->
+  a ->
+  b ->
+  Bool
 setgetLaw l a b =
   get l (set l a b) == b
-  
+
 -- | The set/set law of lenses. This function should always return @True@.
 setsetLaw ::
   Eq a =>
-  Lens a b
-  -> a
-  -> b
-  -> b
-  -> Bool
+  Lens a b ->
+  a ->
+  b ->
+  b ->
+  Bool
 setsetLaw l a b1 b2 =
   set l (set l a b1) b2 == set l a b2
 
@@ -140,19 +141,18 @@ setsetLaw l a b1 b2 =
 --
 -- prop> let types = (x :: Int, y :: String) in modify sndL id (x, y) == (x, y)
 modify ::
-  Lens a b
-  -> (b -> b)
-  -> a
-  -> a
-modify =
-  error "todo: modify"
+  Lens a b ->
+  (b -> b) ->
+  a ->
+  a
+modify l f o = set l o $ (f . get l) o
 
 -- | An alias for @modify@.
 (%~) ::
-  Lens a b
-  -> (b -> b)
-  -> a
-  -> a
+  Lens a b ->
+  (b -> b) ->
+  a ->
+  a
 (%~) =
   modify
 
@@ -170,12 +170,11 @@ infixr 4 %~
 --
 -- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .~ z $ (x, y))
 (.~) ::
-  Lens a b
-  -> b
-  -> a
-  -> a
-(.~) =
-  error "todo: (.~)"
+  Lens a b ->
+  b ->
+  a ->
+  a
+(.~) l b a = set l a b
 
 infixl 5 .~
 
@@ -191,14 +190,12 @@ infixl 5 .~
 -- Nothing
 fmodify ::
   Functor f =>
-  Lens a b
-  -> (b -> f b)
-  -> a
-  -> f a
-fmodify =
-  error "todo: fmodify"
+  Lens a b ->
+  (b -> f b) ->
+  a ->
+  f a
+fmodify l f o = set l o <$> f (get l o)
 
--- |
 --
 -- >>> fstL |= Just 3 $ (7, "abc")
 -- Just (3,"abc")
@@ -207,12 +204,11 @@ fmodify =
 -- (18,"abc")
 (|=) ::
   Functor f =>
-  Lens a b
-  -> f b
-  -> a
-  -> f a
-(|=) =
-  error "todo: (|=)"
+  Lens a b ->
+  f b ->
+  a ->
+  f a
+(|=) l b o = set l o <$> b
 
 infixl 5 |=
 
@@ -222,14 +218,19 @@ infixl 5 |=
 -- (30,"abc")
 --
 -- prop> let types = (x :: Int, y :: String) in getsetLaw fstL (x, y)
+-- Add QuickCheck to your cabal dependencies to run this test.
 --
 -- prop> let types = (x :: Int, y :: String) in setgetLaw fstL (x, y) z
+-- Add QuickCheck to your cabal dependencies to run this test.
 --
 -- prop> let types = (x :: Int, y :: String) in setsetLaw fstL (x, y) z
+-- Add QuickCheck to your cabal dependencies to run this test.
 fstL ::
   Lens (x, y) x
-fstL =
-  error "todo: fstL"
+fstL = Lens setter getter
+    where setter (_, y) x = (x, y)
+          getter (x, _) = x
+  
 
 -- |
 --
@@ -237,14 +238,18 @@ fstL =
 -- (13,"abcdef")
 --
 -- prop> let types = (x :: Int, y :: String) in getsetLaw sndL (x, y)
+-- Add QuickCheck to your cabal dependencies to run this test.
 --
 -- prop> let types = (x :: Int, y :: String) in setgetLaw sndL (x, y) z
+-- Add QuickCheck to your cabal dependencies to run this test.
 --
 -- prop> let types = (x :: Int, y :: String) in setsetLaw sndL (x, y) z
+-- Add QuickCheck to your cabal dependencies to run this test.
 sndL ::
   Lens (x, y) y
-sndL =
-  error "todo: sndL"
+sndL = Lens setter getter
+    where setter (x, _) y = (x, y)
+          getter (_, y) = y
 
 -- |
 --
@@ -267,10 +272,12 @@ sndL =
 -- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d')]
 mapL ::
   Ord k =>
-  k
-  -> Lens (Map k v) (Maybe v)
-mapL =
-  error "todo: mapL"
+  k ->
+  Lens (Map k v) (Maybe v)
+mapL k = Lens setter getter
+    where setter m Nothing = Map.delete k m
+          setter m (Just x) = Map.insert k x m
+          getter m = Map.lookup k m
 
 -- |
 --
@@ -293,10 +300,12 @@ mapL =
 -- fromList [1,2,3,4,5]
 setL ::
   Ord k =>
-  k
-  -> Lens (Set k) Bool
-setL =
-  error "todo: setL"
+  k ->
+  Lens (Set k) Bool
+setL k = Lens setter getter
+  where setter m True = Set.insert k m 
+        setter m False = Set.delete k m
+        getter = Set.member k
 
 -- |
 --
@@ -306,17 +315,18 @@ setL =
 -- >>> set (compose fstL sndL) ("abc", (7, "def")) 8
 -- ("abc",(8,"def"))
 compose ::
-  Lens b c
-  -> Lens a b
-  -> Lens a c
-compose =
-  error "todo: compose"
+  Lens b c ->
+  Lens a b ->
+  Lens a c
+compose (Lens s g) (Lens s' g') = Lens setter getter
+    where getter = g . g'
+          setter = \a c -> s' a $ s (g' a) c
 
 -- | An alias for @compose@.
 (|.) ::
-  Lens b c
-  -> Lens a b
-  -> Lens a c
+  Lens b c ->
+  Lens a b ->
+  Lens a c
 (|.) =
   compose
 
@@ -329,10 +339,12 @@ infixr 9 |.
 --
 -- >>> set identity 3 4
 -- 4
+
 identity ::
   Lens a a
-identity =
-  error "todo: identity"
+identity = Lens setter getter
+    where getter = id
+          setter = const id
 
 -- |
 --
@@ -342,17 +354,17 @@ identity =
 -- >>> set (product fstL sndL) (("abc", 3), (4, "def")) ("ghi", "jkl")
 -- (("ghi",3),(4,"jkl"))
 product ::
-  Lens a b
-  -> Lens c d
-  -> Lens (a, c) (b, d)
+  Lens a b ->
+  Lens c d ->
+  Lens (a, c) (b, d)
 product =
   error "todo: product"
 
 -- | An alias for @product@.
 (***) ::
-  Lens a b
-  -> Lens c d
-  -> Lens (a, c) (b, d)
+  Lens a b ->
+  Lens c d ->
+  Lens (a, c) (b, d)
 (***) =
   product
 
@@ -372,17 +384,17 @@ infixr 3 ***
 -- >>> set (choice fstL sndL) (Right ("abc", 7)) 8
 -- Right ("abc",8)
 choice ::
-  Lens a x
-  -> Lens b x
-  -> Lens (Either a b) x
+  Lens a x ->
+  Lens b x ->
+  Lens (Either a b) x
 choice =
   error "todo: choice"
 
 -- | An alias for @choice@.
 (|||) ::
-  Lens a x
-  -> Lens b x
-  -> Lens (Either a b) x
+  Lens a x ->
+  Lens b x ->
+  Lens (Either a b) x
 (|||) =
   choice
 
@@ -461,8 +473,8 @@ addressL =
 -- >>> getSuburb mary
 -- "Maryland"
 getSuburb ::
-  Person
-  -> String
+  Person ->
+  String
 getSuburb =
   error "todo: getSuburb"
 
@@ -474,9 +486,9 @@ getSuburb =
 -- >>> setStreet mary "Some Other St"
 -- Person 28 "Mary" (Address "Some Other St" "Maryland" (Locality "Mary Mary" "Western Mary" "Maristan"))
 setStreet ::
+  Person ->
+  String ->
   Person
-  -> String
-  -> Person
 setStreet =
   error "todo: setStreet"
 
@@ -488,8 +500,8 @@ setStreet =
 -- >>> getAgeAndCountry (mary, fredLocality)
 -- (28,"Fredalia")
 getAgeAndCountry ::
-  (Person, Locality)
-  -> (Int, String)
+  (Person, Locality) ->
+  (Int, String)
 getAgeAndCountry =
   error "todo: getAgeAndCountry"
 
@@ -504,7 +516,7 @@ setCityAndLocality ::
   (Person, Address) -> (String, Locality) -> (Person, Address)
 setCityAndLocality =
   error "todo: setCityAndLocality"
-  
+
 -- |
 --
 -- >>> getSuburbOrCity (Left maryAddress)
@@ -513,8 +525,8 @@ setCityAndLocality =
 -- >>> getSuburbOrCity (Right fredLocality)
 -- "Fredmania"
 getSuburbOrCity ::
-  Either Address Locality
-  -> String
+  Either Address Locality ->
+  String
 getSuburbOrCity =
   error "todo: getSuburbOrCity"
 
@@ -526,9 +538,9 @@ getSuburbOrCity =
 -- >>> setStreetOrState (Left fred) "Some Other St"
 -- Left (Person 24 "Fred" (Address "Some Other St" "Fredville" (Locality "Fredmania" "New South Fred" "Fredalia")))
 setStreetOrState ::
+  Either Person Locality ->
+  String ->
   Either Person Locality
-  -> String
-  -> Either Person Locality
 setStreetOrState =
   error "todo: setStreetOrState"
 
@@ -540,7 +552,7 @@ setStreetOrState =
 -- >>> modifyCityUppercase mary
 -- Person 28 "Mary" (Address "83 Mary Ln" "Maryland" (Locality "MARY MARY" "Western Mary" "Maristan"))
 modifyCityUppercase ::
+  Person ->
   Person
-  -> Person
 modifyCityUppercase =
   error "todo: modifyCityUppercase"

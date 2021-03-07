@@ -357,8 +357,9 @@ product ::
   Lens a b ->
   Lens c d ->
   Lens (a, c) (b, d)
-product =
-  error "todo: product"
+product f g = Lens setter getter
+  where setter (a,c) (b,d) = (set f a b , set g c d)
+        getter (a,c) = (get f a, get g c)
 
 -- | An alias for @product@.
 (***) ::
@@ -387,8 +388,12 @@ choice ::
   Lens a x ->
   Lens b x ->
   Lens (Either a b) x
-choice =
-  error "todo: choice"
+choice f g = Lens setter getter
+  where getter (Left a) = get f a
+        getter (Right b) = get g b
+
+        setter (Left a) x = Left $ set f a x
+        setter (Right b) x = Right $ set g b x
 
 -- | An alias for @choice@.
 (|||) ::
@@ -476,7 +481,7 @@ getSuburb ::
   Person ->
   String
 getSuburb =
-  error "todo: getSuburb"
+  get (suburbL |. addressL)
 
 -- |
 --
@@ -490,7 +495,7 @@ setStreet ::
   String ->
   Person
 setStreet =
-  error "todo: setStreet"
+  set (streetL |. addressL)
 
 -- |
 --
@@ -503,7 +508,7 @@ getAgeAndCountry ::
   (Person, Locality) ->
   (Int, String)
 getAgeAndCountry =
-  error "todo: getAgeAndCountry"
+  get (ageL *** countryL)
 
 -- |
 --
@@ -515,7 +520,7 @@ getAgeAndCountry =
 setCityAndLocality ::
   (Person, Address) -> (String, Locality) -> (Person, Address)
 setCityAndLocality =
-  error "todo: setCityAndLocality"
+  set ((cityL |. localityL |. addressL) *** localityL)
 
 -- |
 --
@@ -528,7 +533,7 @@ getSuburbOrCity ::
   Either Address Locality ->
   String
 getSuburbOrCity =
-  error "todo: getSuburbOrCity"
+  get (choice suburbL cityL)
 
 -- |
 --
@@ -542,7 +547,7 @@ setStreetOrState ::
   String ->
   Either Person Locality
 setStreetOrState =
-  error "todo: setStreetOrState"
+  set (choice (streetL |. addressL) stateL)
 
 -- |
 --
@@ -555,4 +560,4 @@ modifyCityUppercase ::
   Person ->
   Person
 modifyCityUppercase =
-  error "todo: modifyCityUppercase"
+  modify (cityL |. localityL |. addressL) $ map toUpper

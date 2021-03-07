@@ -25,7 +25,7 @@ of `error "todo: <function-name>"`.
 
 ### Exercise modules
 
-##### `Lets.GetSetLens`
+##### `Lets.GetSetLens` **Done**
 
 This module presents a series of exercises, representing lenses as a traditional
 pair of "`get` and `set`" functions. This representation may be beneficial as it
@@ -35,7 +35,7 @@ These exercises are useful to gain an initial understanding of the problems that
 lenses solve, as well as to gain an insight into the history of lenses and how
 the theories have developed over time.
 
-##### `Lets.StoreLens`
+##### `Lets.StoreLens` **Done**
 
 This series of exercises is similar to `Lets.GetSetLens`, however, using a
 slightly altered representation of a lens, based on the `Store` comonad, which
@@ -43,13 +43,13 @@ fuses the typical `get` and `set` operations into a data structure. This
 representation is described in detail in
 *Morris, Tony. "Asymmetric Lenses in Scala." (2012).*
 
-##### `Lets.OpticPolyLens`
+##### `Lets.OpticPolyLens` **Done**
 
 This series of exercises introduces a new representation of lenses, first
 described by Twan van Laarhoven. This representation also introduces a
 generalisation of lenses to permit *polymorphic update* of structures.
 
-##### `Lets.Lens`
+##### `Lets.Lens` **Done**
 
 This series of exercises starts at first principles to derive the concept of a
 lens, as it was first described by Twan van Laarhoven. The derivation then goes
